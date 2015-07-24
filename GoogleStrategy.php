@@ -132,6 +132,7 @@ class GoogleStrategy extends OpauthStrategy{
 	 */
 	private function userinfo($access_token){
 		$options = isset($this->strategy['context_options']) ? $this->strategy['context_options'] : null;
+		
 		$userinfo = $this->serverGet('https://www.googleapis.com/oauth2/v1/userinfo', array('access_token' => $access_token), options, $headers);
 		if (!empty($userinfo)){
 			return $this->recursiveGetObjectVars(json_decode($userinfo));
