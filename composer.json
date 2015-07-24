@@ -1,5 +1,5 @@
 {
-	"name": "opauth/google",
+	"name": "opauth/google-proxy",
 	"description": "Google strategy for Opauth",
 	"keywords": ["authentication","auth","google"],
 	"homepage": "http://opauth.org",
