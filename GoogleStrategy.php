@@ -71,7 +71,8 @@ class GoogleStrategy extends OpauthStrategy{
 				'redirect_uri' => $this->strategy['redirect_uri'],
 				'grant_type' => 'authorization_code'
 			);
-			$response = $this->serverPost($url, $params, null, $headers);
+			$options = isset($this->strategy['context_options']) ? $this->strategy['context_options'] : null;
+			$response = $this->serverPost($url, $params, $options, $headers);
 			
 			$results = json_decode($response);
 			
@@ -133,7 +134,7 @@ class GoogleStrategy extends OpauthStrategy{
 	private function userinfo($access_token){
 		$options = isset($this->strategy['context_options']) ? $this->strategy['context_options'] : null;
 		
-		$userinfo = $this->serverGet('https://www.googleapis.com/oauth2/v1/userinfo', array('access_token' => $access_token), options, $headers);
+		$userinfo = $this->serverGet('https://www.googleapis.com/oauth2/v1/userinfo', array('access_token' => $access_token), $options, $headers);
 		if (!empty($userinfo)){
 			return $this->recursiveGetObjectVars(json_decode($userinfo));
 		}
