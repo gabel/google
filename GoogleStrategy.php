@@ -60,69 +60,71 @@ class GoogleStrategy extends OpauthStrategy{
 	/**
 	 * Internal callback, after OAuth
 	 */
-	public function oauth2callback(){
-		if (array_key_exists('code', $_GET) && !empty($_GET['code'])){
-			$code = $_GET['code'];
-			$url = 'https://accounts.google.com/o/oauth2/token';
-			$params = array(
-				'code' => $code,
-				'client_id' => $this->strategy['client_id'],
-				'client_secret' => $this->strategy['client_secret'],
-				'redirect_uri' => $this->strategy['redirect_uri'],
-				'grant_type' => 'authorization_code'
-			);
-			$options = isset($this->strategy['context_options']) ? $this->strategy['context_options'] : null;
-			$response = $this->serverPost($url, $params, $options, $headers);
-			
-			$results = json_decode($response);
-			
-			if (!empty($results) && !empty($results->access_token)){
-				$userinfo = $this->userinfo($results->access_token);
-				
-				$this->auth = array(
-					'uid' => $userinfo['id'],
-					'info' => array(),
-					'credentials' => array(
-						'token' => $results->access_token,
-						'expires' => date('c', time() + $results->expires_in)
-					),
-					'raw' => $userinfo
-				);
+	public function oauth2callback() {
+        if (array_key_exists('code', $_GET) && !empty($_GET['code'])) {
+            if (function_exists('getRawRequestData')) {
+                $code = getRawRequestData('code');
+            } else {
+                $code = $_GET['code'];
+            }
 
-				if (!empty($results->refresh_token))
-				{
-					$this->auth['credentials']['refresh_token'] = $results->refresh_token;
-				}
-				
-				$this->mapProfile($userinfo, 'name', 'info.name');
-				$this->mapProfile($userinfo, 'email', 'info.email');
-				$this->mapProfile($userinfo, 'given_name', 'info.first_name');
-				$this->mapProfile($userinfo, 'family_name', 'info.last_name');
-				$this->mapProfile($userinfo, 'picture', 'info.image');
-				
-				$this->callback();
-			}
-			else{
-				$error = array(
-					'code' => 'access_token_error',
-					'message' => 'Failed when attempting to obtain access token',
-					'raw' => array(
-						'response' => $response,
-						'headers' => $headers
-					)
-				);
+            $url = 'https://accounts.google.com/o/oauth2/token';
+            $params = array(
+                'code' => $code,
+                'client_id' => $this->strategy['client_id'],
+                'client_secret' => $this->strategy['client_secret'],
+                'redirect_uri' => $this->strategy['redirect_uri'],
+                'grant_type' => 'authorization_code'
+            );
+            $options = isset($this->strategy['context_options']) ? $this->strategy['context_options'] : null;
+            $response = $this->serverPost($url, $params, $options, $headers);
 
-				$this->errorCallback($error);
-			}
-		}
-		else{
-			$error = array(
-				'code' => 'oauth2callback_error',
-				'raw' => $_GET
-			);
-			
-			$this->errorCallback($error);
-		}
+            $results = json_decode($response);
+
+            if (!empty($results) && !empty($results->access_token)) {
+                $userinfo = $this->userinfo($results->access_token);
+
+                $this->auth = array(
+                    'uid' => $userinfo['id'],
+                    'info' => array(),
+                    'credentials' => array(
+                        'token' => $results->access_token,
+                        'expires' => date('c', time() + $results->expires_in)
+                    ),
+                    'raw' => $userinfo
+                );
+
+                if (!empty($results->refresh_token)) {
+                    $this->auth['credentials']['refresh_token'] = $results->refresh_token;
+                }
+
+                $this->mapProfile($userinfo, 'name', 'info.name');
+                $this->mapProfile($userinfo, 'email', 'info.email');
+                $this->mapProfile($userinfo, 'given_name', 'info.first_name');
+                $this->mapProfile($userinfo, 'family_name', 'info.last_name');
+                $this->mapProfile($userinfo, 'picture', 'info.image');
+
+                $this->callback();
+            } else {
+                $error = array(
+                    'code' => 'access_token_error',
+                    'message' => 'Failed when attempting to obtain access token',
+                    'raw' => array(
+                        'response' => $response,
+                        'headers' => $headers
+                    )
+                );
+
+                $this->errorCallback($error);
+            }
+        } else {
+            $error = array(
+                'code' => 'oauth2callback_error',
+                'raw' => $_GET
+            );
+
+            $this->errorCallback($error);
+        }
 	}
 	
 	/**
